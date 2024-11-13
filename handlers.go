@@ -48,6 +48,10 @@ type Table struct {
 	Content [][]string `json:"content"`
 }
 
+func (*TableHandler) Type() string {
+	return "table"
+}
+
 func (*TableHandler) parse(editorJSBlock EditorJSBlock) (*Table, error) {
 	table := &Table{}
 	return table, json.Unmarshal(editorJSBlock.Data, table)
