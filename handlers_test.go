@@ -1,6 +1,7 @@
 package goeditorjs_test
 
 import (
+	"encoding/json"
 	"fmt"
 	"testing"
 
@@ -362,4 +363,15 @@ func Test_ImageHandler_GenerateMarkdown(t *testing.T) {
 		result, _ := h.GenerateMarkdown(ejsBlock)
 		require.Equal(t, td.expectedResult, result)
 	}
+}
+
+func Test_TableHandler_GenerateMarkdown(t *testing.T) {
+	h := &goeditorjs.TableHandler{}
+
+	result, err := h.GenerateMarkdown(goeditorjs.EditorJSBlock{Type: "table", Data: json.RawMessage(`{"withHeadings":false,"stretched":false,"content":[["title","subtitle",""],["123","111",""],["333","2222",""]]}`)})
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	require.Equal(t, result, "| title | subtitle |  |\n| --- | --- | --- |\n| 123 | 111 |  |\n| 333 | 2222 |  |\n")
 }

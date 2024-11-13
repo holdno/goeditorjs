@@ -41,6 +41,45 @@ func (h *HeaderHandler) GenerateMarkdown(editorJSBlock EditorJSBlock) (string, e
 	return fmt.Sprintf("%s %s", strings.Repeat("#", header.Level), header.Text), nil
 }
 
+// Table
+type TableHandler struct{}
+
+type Table struct {
+	Content [][]string `json:"content"`
+}
+
+func (*TableHandler) parse(editorJSBlock EditorJSBlock) (*Table, error) {
+	table := &Table{}
+	return table, json.Unmarshal(editorJSBlock.Data, table)
+}
+
+// GenerateMarkdown generates markdown for ParagraphBlocks
+func (h *TableHandler) GenerateMarkdown(editorJSBlock EditorJSBlock) (string, error) {
+	table, err := h.parse(editorJSBlock)
+	if err != nil {
+		return "", err
+	}
+
+	var sb strings.Builder
+
+	// 遍历数据，生成表头和表格行
+	for i, row := range table.Content {
+		// 将每一行的元素连接成表格单元格
+		sb.WriteString("| " + strings.Join(row, " | ") + " |\n")
+
+		// 只在第二行之后加上表格分隔线
+		if i == 0 {
+			separator := "|"
+			for range row {
+				separator += " --- |"
+			}
+			sb.WriteString(separator + "\n")
+		}
+	}
+
+	return sb.String(), nil
+}
+
 // ParagraphHandler is the default ParagraphHandler for EditorJS HTML generation
 type ParagraphHandler struct{}
 
