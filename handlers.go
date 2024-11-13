@@ -75,10 +75,10 @@ func (h *ParagraphHandler) GenerateMarkdown(editorJSBlock EditorJSBlock) (string
 		return "", err
 	}
 
-	if paragraph.Alignment != "left" {
-		// Native markdown doesn't support alignment, so we'll use html instead.
-		return fmt.Sprintf(`<p style="text-align:%s">%s</p>`, paragraph.Alignment, paragraph.Text), nil
-	}
+	// if paragraph.Alignment != "left" {
+	// 	// Native markdown doesn't support alignment, so we'll use html instead.
+	// 	return fmt.Sprintf(`<p style="text-align:%s">%s</p>`, paragraph.Alignment, paragraph.Text), nil
+	// }
 
 	return paragraph.Text, nil
 }
@@ -125,15 +125,13 @@ func (h *ListHandler) GenerateMarkdown(editorJSBlock EditorJSBlock) (string, err
 		return "", err
 	}
 
-	listItemPrefix := ""
-	if list.Style == "ordered" {
-		listItemPrefix = "1. "
-	} else {
-		listItemPrefix = "- "
-	}
+	listItemPrefix := "- "
 
 	results := []string{}
-	for _, s := range list.Items {
+	for i, s := range list.Items {
+		if list.Style == "ordered" {
+			listItemPrefix = fmt.Sprintf("%d.", i+1)
+		}
 		results = append(results, listItemPrefix+s)
 	}
 
