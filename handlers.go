@@ -123,7 +123,49 @@ func (h *ParagraphHandler) GenerateMarkdown(editorJSBlock EditorJSBlock) (string
 	// 	return fmt.Sprintf(`<p style="text-align:%s">%s</p>`, paragraph.Alignment, paragraph.Text), nil
 	// }
 
+	paragraph.Text = ParseTextATags(paragraph.Text)
+	paragraph.Text = ParseTextCodeTags(paragraph.Text)
+
 	return paragraph.Text, nil
+}
+
+// parse a tag to markdown fmt: []()
+func ParseTextCodeTags(input string) string {
+	re := regexp.MustCompile(`<code[^>]*>([^<]+)</code>`)
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	for _, match := range matches {
+		if match[1] == "" {
+			continue
+		}
+		format := fmt.Sprintf("`%s`", match[1])
+		input = strings.ReplaceAll(input, match[0], format)
+	}
+
+	return input
+}
+
+// parse a tag to markdown fmt: []()
+func ParseTextATags(input string) string {
+	re := regexp.MustCompile(`<a\s+[^>]*href=['"]([^'"]+)['"][^>]*>([^<]+)</a>`)
+	matches := re.FindAllStringSubmatch(input, -1)
+
+	for _, match := range matches {
+		if match[1] == "" {
+			continue
+		}
+
+		url := match[1]
+		text := url
+		if match[2] != "" {
+			text = match[2]
+		}
+
+		format := fmt.Sprintf("[%s](%s)", text, url)
+		input = strings.ReplaceAll(input, match[0], format)
+	}
+
+	return input
 }
 
 // ListHandler is the default ListHandler for EditorJS HTML generation
@@ -179,6 +221,14 @@ func (h *ListHandler) GenerateMarkdown(editorJSBlock EditorJSBlock) (string, err
 	}
 
 	return strings.Join(results, "\n"), nil
+}
+
+type CodeHandler struct {
+	CodeBoxHandler
+}
+
+func (*CodeHandler) Type() string {
+	return "code"
 }
 
 // CodeBoxHandler is the default CodeBoxHandler for EditorJS HTML generation

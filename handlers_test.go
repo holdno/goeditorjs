@@ -121,6 +121,25 @@ func Test_ParagraphHandler_GenerateMarkdown_Left(t *testing.T) {
 	require.Equal(t, "paragraph", md)
 }
 
+func Test_ParagraphHandler_GenerateMarkdown_WithATag(t *testing.T) {
+	bph := &goeditorjs.ParagraphHandler{}
+	jsonData := []byte(`{"text": "paragraph<a href=\"123\">456</a>","alignment": "left"}`)
+	ejsBlock := goeditorjs.EditorJSBlock{Type: "paragraph", Data: jsonData}
+	md, err := bph.GenerateMarkdown(ejsBlock)
+	if err != nil {
+		t.Fatal(err)
+	}
+	require.Equal(t, "paragraph[456](123)", md)
+}
+
+func Test_ParagraphHandler_GenerateMarkdown_WithCodeTag(t *testing.T) {
+	bph := &goeditorjs.ParagraphHandler{}
+	jsonData := []byte(`{"text": "paragraph<code>456</code>","alignment": "left"}`)
+	ejsBlock := goeditorjs.EditorJSBlock{Type: "paragraph", Data: jsonData}
+	md, _ := bph.GenerateMarkdown(ejsBlock)
+	require.Equal(t, "paragraph`456`", md)
+}
+
 func Test_ParagraphHandler_GenerateMarkdown_Center_Right(t *testing.T) {
 	bph := &goeditorjs.ParagraphHandler{}
 	testData := []struct {
