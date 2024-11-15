@@ -1,7 +1,9 @@
 package goeditorjs
 
 import (
+	"encoding/json"
 	"fmt"
+	"strings"
 )
 
 // HTMLEngine is the engine that creates the HTML from EditorJS blocks
@@ -48,4 +50,27 @@ func (htmlEngine *HTMLEngine) GenerateHTML(editorJSData string) (string, error) 
 	}
 
 	return result, nil
+}
+
+// GenerateHTMLWithUnknownBlock generates html from the editorJS using configured set of HTML handlers
+func (htmlEngine *HTMLEngine) GenerateHTMLWithUnknownBlock(editorJSData string) (string, error) {
+	result := strings.Builder{}
+	ejs, err := parseEditorJSON(editorJSData)
+	if err != nil {
+		return "", err
+	}
+	for _, block := range ejs.Blocks {
+		if generator, ok := htmlEngine.BlockHandlers[block.Type]; ok {
+			html, err := generator.GenerateHTML(block)
+			if err != nil {
+				return result.String(), err
+			}
+			result.WriteString(html)
+		} else {
+			raw, _ := json.MarshalIndent(block.Data, "", "  ")
+			result.WriteString(fmt.Sprintf("<pre><code>%s</code></pre>", string(raw)))
+		}
+	}
+
+	return result.String(), nil
 }

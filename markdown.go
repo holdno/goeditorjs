@@ -1,6 +1,7 @@
 package goeditorjs
 
 import (
+	"encoding/json"
 	"fmt"
 	"strings"
 )
@@ -45,6 +46,29 @@ func (markdownEngine *MarkdownEngine) GenerateMarkdown(editorJSData string) (str
 			results = append(results, md)
 		} else {
 			return "", fmt.Errorf("%w, Block Type: %s", ErrBlockHandlerNotFound, block.Type)
+		}
+	}
+
+	return strings.Join(results, "\n\n"), nil
+}
+
+// GenerateMarkdown generates markdown from the editorJS using configured set of markdown handlers
+func (markdownEngine *MarkdownEngine) GenerateMarkdownWithUnknownBlock(editorJSData string) (string, error) {
+	results := []string{}
+	ejs, err := parseEditorJSON(editorJSData)
+	if err != nil {
+		return "", err
+	}
+	for _, block := range ejs.Blocks {
+		if generator, ok := markdownEngine.BlockHandlers[block.Type]; ok {
+			md, err := generator.GenerateMarkdown(block)
+			if err != nil {
+				return "", err
+			}
+			results = append(results, md)
+		} else {
+			raw, _ := json.MarshalIndent(block.Data, "", "  ")
+			results = append(results, fmt.Sprintf("```json\n%s\n```", string(raw)))
 		}
 	}
 
