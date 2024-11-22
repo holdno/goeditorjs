@@ -52,6 +52,11 @@ func (markdownEngine *MarkdownEngine) GenerateMarkdown(editorJSData string) (str
 	return strings.Join(results, "\n\n"), nil
 }
 
+func unknownMarkdownBlockHandler(data EditorJSBlock) string {
+	raw, _ := json.MarshalIndent(data.Data, "", "  ")
+	return fmt.Sprintf("```json\n// type: %s\n%s\n```", data.Type, string(raw))
+}
+
 // GenerateMarkdown generates markdown from the editorJS using configured set of markdown handlers
 func (markdownEngine *MarkdownEngine) GenerateMarkdownWithUnknownBlock(editorJSData string) (string, error) {
 	results := []string{}
@@ -63,12 +68,12 @@ func (markdownEngine *MarkdownEngine) GenerateMarkdownWithUnknownBlock(editorJSD
 		if generator, ok := markdownEngine.BlockHandlers[block.Type]; ok {
 			md, err := generator.GenerateMarkdown(block)
 			if err != nil {
-				return "", err
+				results = append(results, unknownMarkdownBlockHandler(block))
+				continue
 			}
 			results = append(results, md)
 		} else {
-			raw, _ := json.MarshalIndent(block.Data, "", "  ")
-			results = append(results, fmt.Sprintf("```json\n%s\n```", string(raw)))
+			results = append(results, unknownMarkdownBlockHandler(block))
 		}
 	}
 

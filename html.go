@@ -52,6 +52,11 @@ func (htmlEngine *HTMLEngine) GenerateHTML(editorJSData string) (string, error) 
 	return result, nil
 }
 
+func unknownHTMLBlockHandler(data EditorJSBlock) string {
+	raw, _ := json.MarshalIndent(data.Data, "", "  ")
+	return fmt.Sprintf("<pre><code>// type: %s</code><code>%s</code></pre>", data.Type, string(raw))
+}
+
 // GenerateHTMLWithUnknownBlock generates html from the editorJS using configured set of HTML handlers
 func (htmlEngine *HTMLEngine) GenerateHTMLWithUnknownBlock(editorJSData string) (string, error) {
 	result := strings.Builder{}
@@ -63,12 +68,12 @@ func (htmlEngine *HTMLEngine) GenerateHTMLWithUnknownBlock(editorJSData string) 
 		if generator, ok := htmlEngine.BlockHandlers[block.Type]; ok {
 			html, err := generator.GenerateHTML(block)
 			if err != nil {
-				return result.String(), err
+				result.WriteString(unknownHTMLBlockHandler(block))
+				continue
 			}
 			result.WriteString(html)
 		} else {
-			raw, _ := json.MarshalIndent(block.Data, "", "  ")
-			result.WriteString(fmt.Sprintf("<pre><code>%s</code></pre>", string(raw)))
+			result.WriteString(unknownHTMLBlockHandler(block))
 		}
 	}
 
