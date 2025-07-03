@@ -8,6 +8,7 @@ import (
 
 // MarkdownEngine is the engine that creates the HTML from EditorJS blocks
 type MarkdownEngine struct {
+	StaticDomain  string
 	BlockHandlers map[string]MarkdownBlockHandler
 }
 
@@ -17,10 +18,22 @@ type MarkdownBlockHandler interface {
 	GenerateMarkdown(editorJSBlock EditorJSBlock) (string, error)
 }
 
+type MarkdownEngineOptions func(m *MarkdownEngine)
+
+func WithStaticDomain(domain string) MarkdownEngineOptions {
+	return func(m *MarkdownEngine) {
+		m.StaticDomain = domain
+	}
+}
+
 // NewMarkdownEngine creates a new MarkdownEngine
-func NewMarkdownEngine() *MarkdownEngine {
+func NewMarkdownEngine(opts ...MarkdownEngineOptions) *MarkdownEngine {
 	bhs := make(map[string]MarkdownBlockHandler)
-	return &MarkdownEngine{BlockHandlers: bhs}
+	m := &MarkdownEngine{BlockHandlers: bhs}
+	for _, opt := range opts {
+		opt(m)
+	}
+	return m
 }
 
 // RegisterBlockHandlers registers or overrides a block handlers for blockType given by MarkdownBlockHandler.Type()
