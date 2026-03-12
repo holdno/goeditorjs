@@ -12,6 +12,7 @@ type editorJS struct {
 
 // EditorJSBlock type
 type EditorJSBlock struct {
+	ID   string `json:"id,omitempty"`
 	Type string `json:"type"`
 	// Data is the Data for an editorJS block in the form of RawMessage ([]byte). It is left up to the Handler to parse the Data field
 	Data json.RawMessage `json:"data"`
